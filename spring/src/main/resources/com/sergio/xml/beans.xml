@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd">
+	
+	<!-- Reconocerá algunas annotation de Spring y java propias del standard de java jsr-250 sin hacer el mapeo -->
+	<context:annotation-config />
+	
+	<!-- Parte de VIDEO 21 -->
+	<!--Realizará un escaneo en todo el paquete definido en búsqueda de anotaciones y stereotypes de Spring-->
+	<!--La diferencia de context:annotation-config es que component-scan hace la detección y asignación de beans al core-container -->
+	<!--En este punto, context:annotation-config sería opcional. -->
+	<context:component-scan base-package="com.sergio"></context:component-scan>
+	
+	<!-- Ejemplo 1 -->
+	<!-- Seteando valores por defecto(Utiliza el setter, SI NO EXISTE IGUAL FUNCIONA)  -->
+	<!-- El orden al setear las props es indistinto. -->
+	<!-- Este bean no se está utilizando, ya que lo creamos mediante annotations -->
+	<bean id="mundo" class="com.sergio.beans.Mundo">
+		<property name="saludo" value="Hola Mundo!"></property>
+	</bean>
+	
+	
+	<!-- Ejemplo 2: Inyeccion por constructor -->
+	<!-- Los constructor-tag se utiliza para setear los valores del objeto -->
+	<!-- Spring reconoce que el primer argumento(1) es un int, por eso lo lee como tal -->
+	<!-- Si existen varios constructores podemos utilizar la propiedad Ej..type="int" para indicarle cuál usaremos
+	ó también podemos utilizar la propiedad Ej..index="0" para indicar el orden de los argumentos del constructor a utilizar  -->
+	<!--  -->
+	<bean id="persona" class="com.sergio.beans.Persona">
+		<constructor-arg value="1"></constructor-arg>
+		<constructor-arg value="Sergio"></constructor-arg>
+		<constructor-arg value="Checho"></constructor-arg>
+	</bean>
+	
+	<bean id="persona2" class="com.sergio.beans.Persona">
+		<constructor-arg type="int" value="1"></constructor-arg>
+	</bean>
+	
+	<bean id="persona3" class="com.sergio.beans.Persona">
+		<constructor-arg index="0" value="1"></constructor-arg>
+		<constructor-arg index="2" value="Checho"></constructor-arg>
+		<constructor-arg index="1" value="Sergio"></constructor-arg>
+	</bean>
+	
+	<!-- Ejemplo 3: Inyeccion de objetos -->
+	<!-- Un obj Animal posee en sus atributos un obj Reino, para obtener ese 
+	valor debemos referencia a nuestra variable(reino) con el ID del bean-objeto (reino) -->
+	<!-- El orden al setear las props es indistinto. -->
+	<bean id="animal" class="com.sergio.beans.Animal">
+		<property name="reino" ref="reino"></property>
+		<property name="especie" value="Felino"></property>
+		<property name="clasificacion" value="Vertebrado"></property>
+		<property name="salvaje" value="false"></property>
+	</bean>
+	
+	<bean id="reino" class="com.sergio.beans.Reino">
+		<property name="nombre" value="Animalia"></property>
+		<property name="ambiente" ref="ambiente"></property>
+	</bean>
+	
+	<bean id="ambiente" class="com.sergio.beans.Ambiente">
+		<property name="nombre" value="Selva"></property>
+	</bean>
+	
+	<!-- Ejemplo 4: Beans anidados -->
+	<!-- Podemos anidar objetos beans dentro de otros para no utilizar la propiedad ref -->
+	<bean id="animal2" class="com.sergio.beans.Animal">
+		<property name="reino">
+			<bean id="reino2" class="com.sergio.beans.Reino">
+				<property name="nombre" value="Animalia"></property>
+				<!-- Bean ambiente anidado a la propiedad ambiente del objeto reino -->
+				<property name="ambiente">
+					<bean id="ambiente2" class="com.sergio.beans.Ambiente">
+						<property name="nombre" value="Selva"></property>
+					</bean>
+				</property>
+			</bean>
+		</property>
+		<property name="especie" value="Felino"></property>
+		<property name="clasificacion" value="Vertebrado"></property>
+		<property name="salvaje" value="false"></property>
+	</bean>
+	
+	<!-- Ejemplo 5: Colecciones -->
+	<!-- El tag list nos permite hacer una referencia a una coleccion de objetos -->
+	<!-- El tag ref lo utilizamos para referencias los objetos beans de la colección -->
+	<bean id="trabajador" class="com.sergio.beans.Trabajador">
+		<property name="nombre" value="Sergio"></property>
+		<property name="apellido" value="Ramírez"></property>
+		<property name="oficio">
+			<list>
+				<ref bean="oficio1"/>
+				<ref bean="oficio2"/>
+				<ref bean="oficio3"/>
+			</list>
+		</property>
+	</bean>
+	
+	<bean id="oficio1" class="com.sergio.beans.Oficios">
+		<property name="oficio" value="Programación"></property>
+	</bean>
+	
+	<bean id="oficio2" class="com.sergio.beans.Oficios">
+		<property name="oficio" value="Tecnología"></property>
+	</bean>
+	
+	<bean id="oficio3" class="com.sergio.beans.Oficios">
+		<property name="oficio" value="Inteligencia"></property>
+	</bean>
+	
+	<!-- Ejemplo 6: autowire -->
+	<!-- NO ES RECOMENDABLE SI EXISTEN MUCHOS BEANS, YA QUE EL CÓDIGO NO SERÍA LEGIBLE -->
+	<!-- La property autowire nos permite hacer la inyección de dependencias(referencias) de un objeto de forma automática -->
+	<!-- Para que spring pueda hacerlo mediante byName, los atributos objeto de la clase deben tener el mismo nombre que los beans generados en el xml-->
+	<!-- En este caso, los beans pais y ciudadano apuntan a las variables objeto de la clase Ciudadano -->
+	<!-- También existe byType, Spring buscará los beans mediante su tipo(class) y mapeara a las variables objetos de la clase -->
+	<!-- Si existe más de una clase con el mismo tipo Spring no sabrá a cual referencias y dará error -->
+	<bean id="ciudadano" class="com.sergio.beans.Ciudadano" autowire="byName" scope="prototype" init-method="init" destroy-method="destroy">
+		<property name="dni" value="42173528"></property>
+		<property name="nombre" value="Sergio"></property>
+		<property name="apellido" value="Ramírez"></property>
+	</bean>
+	
+	<bean id="ciudadano2" class="com.sergio.beans.Ciudadano" autowire="byType" scope="prototype" >
+		<property name="dni" value="43573229"></property>
+		<property name="nombre" value="Pri"></property>
+		<property name="apellido" value="Moreno"></property>
+	</bean>
+	
+	<bean id="pais" class="com.sergio.beans.Pais" autowire="byName">
+		<property name="nombre" value="Argentina"></property>
+	</bean>
+	
+	<bean id="ciudad" class="com.sergio.beans.Ciudad">
+		<property name="nombre" value="Buenos Aires"></property>
+	</bean>
+	
+	<!-- VIDEO 12: Spring maneja 2 ámbitos importantes, SINGLETON Y PROTOTYPE -->
+	<!-- Por default nuestros beans toman el ámbito singletos, a menos que lo seteemos mediante la property scope="" -->
+	<!-- En el patrón singleton, todos los beans generados del mismo tipo y ID pertenecen a la misma instancia -->
+	<!-- objPersona == objPersona1 'True' -->
+	<!-- En el patrón prototype, los beans generados perteneces a instancias diferentes -->
+	<!-- objPais == objPais2 'false' -->
+	
+	<!-- VIDEO 13: Al cargar el ApplicationContext, todos los beans con el scope singleton serán generados(cargados en memoria) al iniciar la aplicación -->
+	<!-- En cambio, los beans con el scope prototype, serán generados cuando se necesiten mediante el metodo getBean() -->
+	<!-- La property lazy-init="true"(válida en beans singleton) nos permite no cargar los beans de forma automática al iniciar la aplicación -->
+	<!-- Sino que serán cargados al hacer un getBean al igual que con los beans prototype -->
+	
+	<!-- VIDEO 14: Ciclo de vida... Podemos ejecutar código antes de la inicialización de un bean y depués de su destrucción -->
+	<!-- .......VER CLASE CIUDADANO......... -->
+	<!-- Para esto, debemos crear los métodos que se ejecutarán antes de la inicialización y después de la destrucción -->
+	<!-- Luego, al crear el bean en el xml, debemos configurar mediante la property init-method="nameMetodoAntesDeIniciar" y destroy-method="nameMetodoDespuesDeDestruccion"-->
+	<!-- Si necesitamos llevar un registro de la inicialización y destrucción de todos los beans, podemos setear estos métodos en el tag <beans></beans> -->
+	<!-- ACLARACIÓN: Los beans singleton se inicializan al cargar el ApplicationContext, por lo tanto se ejecutará el init-method en ese momento -->
+	<!-- ACLARACIÓN2: Se ejecutará el destroy-method al cerrar el ApplicationContext -->
+	<!-- Para esto utilizamos las properties default-init-method="nameMethod" y default-destroy-method="nameMethod" -->
+	
+	<!-- VIDEO 15: Mediante annotations debemos indicar @PostConstruct al método init y @PreDestoy al método destroy -->
+	<!-- .............VER CLASE MUNDO.......... -->
+	
+	<!-- Video 16: Mediante interfaces debemos implementar InitializingBean, sobreescribir el método afterPropertiesSet() (equivalente a init)-->
+	<!-- y debemos implementar DisposableBean y sobreescribir su método destroy() -->
+	
+	<!-- Video 17: Utilizando la interfaz BeanPostProcessor también podemos controlar el CICLO DE VIDA de los beans -->
+	<!-- Se ejecutará antes de cargar el bean en el Context y al terminar de cargarse -->
+	<!-- Debemos crear una clase, implementar la interfaz, sobreescribir sus método y mapearla en el archivo xml -->
+	<!-- <bean class="com.sergio.beans.EjemploBeanPostProcessor"></bean> -->
+	
+	<!-- Video 18: Ejemplo de utilización de interfaces para lograr una flexibilidad -->
+	<bean id="messi" class="com.sergio.beans.Jugador">
+		<property name="id" value="10"></property>
+		<property name="nombre" value="Lionel Messi"></property>
+	</bean>
+	
+	<bean id="barcelona" class="com.sergio.beans.Barcelona">
+		<qualifier value="barcelonaQualifier"></qualifier>
+	</bean>
+	
+	<bean id="juventus" class="com.sergio.beans.Juventus"></bean>
+	
+	
+	<!-- Video 19: Utilizamos la anotación required para indicar que un atributo debe ser si o si iniciado para poder iniciar el bean -->
+	<!-- Debemos colocar la @Required en el método set de dicho atributo y mapear en el xml la anotación-->
+	<!-- VER CLASE Jugador -->
+	<!-- <bean class="org.springframework.beans.factory.annotation.RequiredAnnotationBeanPostProcessor"></bean> -->
+	
+	<!-- Video 20: Utilzación de annotation autowired y qualifier-->
+	<!-- Autowired por defecto será byType -->
+	<!-- Podemos utilizar la annotation autowired que funciona igual que la property autowire para hacer las referencias automaticamente-->
+	<!-- Debemos poner la annotation en el atributo a referenciar o en su metodo set. -->
+	<!-- Debemos mapear la annotation org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor-->
+	<!--<bean class="org.springframework.beans.factory.annotation.AutowiredAnnotationBeanPostProcessor"></bean> -->
+	
+	<!-- .....Es un requisito para lo siguiente agregar el namespace context.... -->
+	<!-- Si necesitamos utilizar el autowired byName y no podemos cambiar el nombre de los beans referencia para hacerlos coincidir con los del atributo a referenciar -->
+	<!-- Debemos agregar el annotation @Qualifier("nameQualifier") al atributo a referenciar -->
+	<!-- Para esto, debemos agregar a nuestro bean referencia un tag denominado qualifier con su property value="nombreQualifier" -->
+	<!-- Mediante este nombre mapearemos en la clase utilizando el tag @Qualifier("nombreQualifier")-->
+	<!-- Debemos mapear la annotation al xml org.springframework.beans.factory.annotation.QualifierAnnotationAutowireCandidateResolver -->
+	
+	<!-- Video 21: Stereotypes -->
+	<!-- VER CLASE HUMANO -->
+	<!-- Los annotations stereotypes nos permiten simplificar las definiciones de beans en el archivo xml  -->
+	<!-- Existen 4 stereotypes: Component, Controller, Service y Respository -->
+	<!-- Component: Define un beans genérico(normalito) -->
+	<!-- Los siguientes stereotypes se utilizan normalmente en programación en 3 capas, son beans normales con cierta funcionalidad extra -->
+	<!-- Controller: Realiza las tareas de controlador y gestión de la comunicación entre el usuario y el aplicativo-->
+	<!-- Service: se encarga de gestionar las operaciones de negocio más importantes a nivel de la aplicación y aglutina llamadas a varios repositorios de forma simultánea -->
+	<!-- Repository: es el encargado de almacenar datos en una base de datos o repositorio de información que se necesite -->
+	<!-- <context:component-scan base-package="com.sergio"></context:component-scan> -->
+	<!-- Es necesario utilizar ese tag para que nos reconozca las annotations Stereotype y genere los beans -->
+	
+	<!-- Se debe utilizar estos tags en la clase @Component -->
+	<!-- El nombre por defecto para realizar un getBean() será el nombre de la clase en minúscula -->
+	<!-- Si queremos definir un nombre debemos indicarlo en el annotation @Component("nombreBean") -->
+	
+</beans>
